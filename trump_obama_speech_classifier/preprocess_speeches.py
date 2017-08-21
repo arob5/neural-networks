@@ -1,7 +1,7 @@
 #
 # preprocess_speeches.py
 # Tokenizes and lemmantizes speeches by the two presidents
-# Last Modified: 8/20/2017
+# Last Modified: 8/21/2017
 # Modified By: Andrew Roberts
 #
 #
@@ -20,10 +20,23 @@ from nltk.stem import WordNetLemmatizer
 
 lemmatizer = WordNetLemmatizer()
 
-def main():
-	lexicon = create_lexicon(["obama_speech_transcripts.txt", "trump_speech_transcripts.txt"])
-#	check_distribution(word_counts)
+def create_feature_label_sets(file1, file2, test_size=.1):
+	lexicon = create_lexicon([file1, file2])
+	features = []
+	features += parse_observation(file1, lexicon, [1, 0])
+	features += parse_observation(file2, lexicon, [0, 1])
+	random.shuffle(features)
+	features = np.asarray(features)
 
+	n_test_examples = int(test_size * len(features))
+
+	x_train = features[:, 0][: -n_test_examples]
+	y_train = features[:, 1][: -n_test_examples]
+
+	x_test = features[:, 0][-n_test_examples:]
+	y_test = features[:, 1][-n_test_examples:]
+
+	return x_train, x_test, y_train, y_test
 
 def create_lexicon(text_files):
 	lexicon = []
@@ -47,20 +60,7 @@ def create_lexicon(text_files):
 	
 	return lexicon_trimmed
 
-def check_distribution(word_counts):
-	""" Look at distribution of word counts; used to make cutoff decisions for word 
-            counts in the create_lexicon function
-
-	Args: word_counts (collections.Counter() object)  
-	"""
-
-	print(word_counts.most_common(100))
-	word_count_values = list(word_counts.values())
-
-	print("Word count percentiles from 10 to 100:")
-	print(np.percentile(word_count_values, range(10, 100, 10)))
-
-def parse_obervation(sample, lexicon, classification):
+def parse_observation(sample, lexicon, classification):
 	feature_set = []
 
 	with open(sample, "r") as f:
@@ -76,22 +76,22 @@ def parse_obervation(sample, lexicon, classification):
 					features[index_value] += 1
 			feature_set.append([list(features), classification])
 	
-#	feature_set = np.asarray(feature_set)
 	return feature_set
 
-def create_feature_label_sets(file1, file2, test_size=.1):
-	lexicon = create_lexicon([file1, file2])
-	features = []
-	features += parse_observation(file1, lexicon, [1, 0])
-	features += parse_observation(file2, lexicon, [0, 1])
-	random.shuffle(features)
 
-	features = np.array(features)
-	testing_size = int(test_size * len(features))
-	x_train = list(features[:, 0])
+def check_distribution(word_counts):
+	""" Look at distribution of word counts; used to make cutoff decisions for word 
+            counts in the create_lexicon function
+
+	Args: word_counts (collections.Counter() object)  
+	"""
+
+	print(word_counts.most_common(100))
+	word_count_values = list(word_counts.values())
+
+	print("Word count percentiles from 10 to 100:")
+	print(np.percentile(word_count_values, range(10, 100, 10)))
+
+
 	
-	
 
-
-
-main()
