@@ -26,13 +26,13 @@ def create_feature_label_sets(file1, file2, test_size=.1):
 	features += parse_observation(file1, lexicon, [1, 0])
 	features += parse_observation(file2, lexicon, [0, 1])
 	random.shuffle(features)
+	
 	features = np.asarray(features)
-
 	n_test_examples = int(test_size * len(features))
 
 	x_train = features[:, 0][: -n_test_examples]
 	y_train = features[:, 1][: -n_test_examples]
-
+	
 	x_test = features[:, 0][-n_test_examples:]
 	y_test = features[:, 1][-n_test_examples:]
 
@@ -74,7 +74,7 @@ def parse_observation(sample, lexicon, classification):
 				if word.lower() in lexicon:
 					index_value = lexicon.index(word.lower())
 					features[index_value] += 1
-			feature_set.append([list(features), classification])
+			feature_set.append([np.array(list(features)), np.array(classification)])
 	
 	return feature_set
 
